@@ -1,0 +1,248 @@
+receivers:
+  # ── Standard SQL Server receiver (performance counters via DMVs) ──────────
+  sqlserver:
+    collection_interval: 10s
+    username: "sa"
+    password: "YourStrong!Passw0rd"
+    server: "sqlserver"
+    port: 1433
+    metrics:
+      sqlserver.computer.uptime:
+        enabled: true
+      sqlserver.cpu.count:
+        enabled: true
+      sqlserver.database.backup_or_restore.rate:
+        enabled: true
+      sqlserver.database.count:
+        enabled: true
+      sqlserver.database.execution.errors:
+        enabled: true
+      sqlserver.database.full_scan.rate:
+        enabled: true
+      sqlserver.database.io:
+        enabled: true
+      sqlserver.database.latency:
+        enabled: true
+      sqlserver.database.operations:
+        enabled: true
+      sqlserver.database.tempdb.space:
+        enabled: true
+      sqlserver.database.tempdb.version_store.size:
+        enabled: true
+      sqlserver.deadlock.rate:
+        enabled: true
+      sqlserver.index.search.rate:
+        enabled: true
+      sqlserver.lock.timeout.rate:
+        enabled: true
+      sqlserver.lock.wait.count:
+        enabled: true
+      sqlserver.login.rate:
+        enabled: true
+      sqlserver.logout.rate:
+        enabled: true
+      sqlserver.memory.grants.pending.count:
+        enabled: true
+      sqlserver.memory.usage:
+        enabled: true
+      sqlserver.os.wait.duration:
+        enabled: true
+      sqlserver.page.buffer_cache.free_list.stalls.rate:
+        enabled: true
+      sqlserver.page.lookup.rate:
+        enabled: true
+      sqlserver.processes.blocked:
+        enabled: true
+      sqlserver.replica.data.rate:
+        enabled: true
+      sqlserver.resource_pool.disk.operations:
+        enabled: true
+      sqlserver.resource_pool.disk.throttled.read.rate:
+        enabled: true
+      sqlserver.resource_pool.disk.throttled.write.rate:
+        enabled: true
+      sqlserver.table.count:
+        enabled: true
+      sqlserver.transaction.delay:
+        enabled: true
+      sqlserver.transaction.mirror_write.rate:
+        enabled: true
+
+  # ── Custom SQL queries (DBM-style: query stats, sessions, waits) ──────────
+  sqlquery/query_stats:
+    driver: sqlserver
+    datasource: "sqlserver://sa:YourStrong!Passw0rd@sqlserver:1433"
+    collection_interval: 30s
+    queries:
+      # Top queries by average elapsed time
+      - sql: >
+          SELECT TOP 20
+            CAST(qs.total_elapsed_time / qs.execution_count AS BIGINT) AS avg_elapsed_time_us,
+            CAST(qs.total_worker_time  / qs.execution_count AS BIGINT) AS avg_cpu_time_us,
+            CAST(qs.total_logical_reads / qs.execution_count AS BIGINT) AS avg_logical_reads,
+            CAST(qs.execution_count AS BIGINT) AS execution_count,
+            ISNULL(DB_NAME(qt.dbid), 'unknown') AS db_name,
+            LEFT(REPLACE(REPLACE(LTRIM(SUBSTRING(qt.text,
+              (qs.statement_start_offset/2)+1,
+              ((CASE qs.statement_end_offset WHEN -1 THEN DATALENGTH(qt.text)
+                ELSE qs.statement_end_offset END - qs.statement_start_offset)/2)+1
+            )), CHAR(10), ' '), CHAR(13), ' '), 100) AS query_text
+          FROM sys.dm_exec_query_stats qs
+          CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) qt
+          WHERE qs.execution_count > 0
+          ORDER BY avg_elapsed_time_us DESC
+        metrics:
+          - metric_name: sqlserver.query.avg_elapsed_time_us
+            value_column: avg_elapsed_time_us
+            attribute_columns: [db_name, query_text]
+          - metric_name: sqlserver.query.avg_cpu_time_us
+            value_column: avg_cpu_time_us
+            attribute_columns: [db_name, query_text]
+          - metric_name: sqlserver.query.avg_logical_reads
+            value_column: avg_logical_reads
+            attribute_columns: [db_name, query_text]
+          - metric_name: sqlserver.query.execution_count
+            value_column: execution_count
+            attribute_columns: [db_name, query_text]
+
+  sqlquery/sessions:
+    driver: sqlserver
+    datasource: "sqlserver://sa:YourStrong!Passw0rd@sqlserver:1433"
+    collection_interval: 10s
+    queries:
+      # Active sessions by status
+      - sql: >
+          SELECT status, COUNT(*) AS session_count
+          FROM sys.dm_exec_sessions
+          WHERE is_user_process = 1
+          GROUP BY status
+        metrics:
+          - metric_name: sqlserver.sessions.count
+            value_column: session_count
+            attribute_columns: [status]
+
+      # Blocking chains
+      - sql: >
+          SELECT COUNT(*) AS blocked_count
+          FROM sys.dm_exec_requests
+          WHERE blocking_session_id > 0
+        metrics:
+          - metric_name: sqlserver.sessions.blocked_requests
+            value_column: blocked_count
+
+      # Open transactions
+      - sql: >
+          SELECT COUNT(*) AS open_transactions
+          FROM sys.dm_exec_sessions
+          WHERE open_transaction_count > 0 AND is_user_process = 1
+        metrics:
+          - metric_name: sqlserver.sessions.open_transactions
+            value_column: open_transactions
+
+  sqlquery/wait_stats:
+    driver: sqlserver
+    datasource: "sqlserver://sa:YourStrong!Passw0rd@sqlserver:1433"
+    collection_interval: 15s
+    queries:
+      # Top wait types (excluding benign idle waits)
+      - sql: >
+          SELECT TOP 20 wait_type,
+            CAST(wait_time_ms AS BIGINT) AS wait_time_ms,
+            CAST(waiting_tasks_count AS BIGINT) AS waiting_tasks_count,
+            CAST(CASE WHEN waiting_tasks_count > 0 THEN wait_time_ms / waiting_tasks_count ELSE 0 END AS BIGINT) AS avg_wait_ms
+          FROM sys.dm_os_wait_stats
+          WHERE wait_type NOT IN (
+            'SLEEP_TASK','BROKER_TO_FLUSH','BROKER_TASK_STOP','CLR_AUTO_EVENT',
+            'DISPATCHER_QUEUE_SEMAPHORE','FT_IFTS_SCHEDULER_IDLE_WAIT','HADR_WORK_QUEUE',
+            'ONDEMAND_TASK_QUEUE','REQUEST_FOR_DEADLOCK_SEARCH','RESOURCE_QUEUE',
+            'SERVER_IDLE_CHECK','SLEEP_DBSTARTUP','SLEEP_DBTASK','SLEEP_MASTERDBREADY',
+            'SLEEP_MASTERMDREADY','SLEEP_MASTERUPGRADED','SLEEP_MSDBSTARTUP',
+            'SLEEP_SYSTEMTASK','SLEEP_TEMPDBSTARTUP','SNI_HTTP_ACCEPT',
+            'SP_SERVER_DIAGNOSTICS_SLEEP','SQLTRACE_BUFFER_FLUSH',
+            'SQLTRACE_INCREMENTAL_FLUSH_SLEEP','WAIT_XTP_OFFLINE_CKPT_NEW_LOG',
+            'WAITFOR','XE_DISPATCHER_WAIT','XE_TIMER_EVENT','BROKER_EVENTHANDLER',
+            'CHECKPOINT_QUEUE','DBMIRROR_EVENTS_QUEUE','SQLTRACE_WAIT_ENTRIES',
+            'WAIT_XTP_CKPT_CLOSE','XE_DISPATCHER_JOIN'
+          )
+          ORDER BY wait_time_ms DESC
+        metrics:
+          - metric_name: sqlserver.wait_stats.wait_time_ms
+            value_column: wait_time_ms
+            attribute_columns: [wait_type]
+          - metric_name: sqlserver.wait_stats.waiting_tasks_count
+            value_column: waiting_tasks_count
+            attribute_columns: [wait_type]
+          - metric_name: sqlserver.wait_stats.avg_wait_ms
+            value_column: avg_wait_ms
+            attribute_columns: [wait_type]
+
+  sqlquery/buffer_pool:
+    driver: sqlserver
+    datasource: "sqlserver://sa:YourStrong!Passw0rd@sqlserver:1433"
+    collection_interval: 30s
+    queries:
+      # Buffer pool usage per database
+      - sql: >
+          SELECT ISNULL(DB_NAME(database_id), 'ResourceDB') AS db_name,
+            CAST(COUNT(*) * 8 AS BIGINT) AS buffer_pool_kb
+          FROM sys.dm_os_buffer_descriptors
+          GROUP BY database_id
+        metrics:
+          - metric_name: sqlserver.buffer_pool.usage_kb
+            value_column: buffer_pool_kb
+            attribute_columns: [db_name]
+
+  sqlquery/index_stats:
+    driver: sqlserver
+    datasource: "sqlserver://sa:YourStrong!Passw0rd@sqlserver:1433"
+    collection_interval: 60s
+    queries:
+      # Missing indexes (high impact)
+      - sql: >
+          SELECT TOP 10
+            ISNULL(DB_NAME(mid.database_id), 'unknown') AS db_name,
+            ISNULL(OBJECT_NAME(mid.object_id, mid.database_id), 'unknown') AS table_name,
+            CAST(migs.avg_user_impact AS BIGINT) AS avg_user_impact,
+            CAST(migs.user_seeks AS BIGINT) AS user_seeks
+          FROM sys.dm_db_missing_index_details mid
+          JOIN sys.dm_db_missing_index_groups mig ON mid.index_handle = mig.index_handle
+          JOIN sys.dm_db_missing_index_group_stats migs ON mig.index_group_handle = migs.group_handle
+          WHERE migs.avg_user_impact > 0
+          ORDER BY migs.avg_user_impact DESC
+        metrics:
+          - metric_name: sqlserver.index.missing.avg_user_impact
+            value_column: avg_user_impact
+            attribute_columns: [db_name, table_name]
+          - metric_name: sqlserver.index.missing.user_seeks
+            value_column: user_seeks
+            attribute_columns: [db_name, table_name]
+
+
+processors:
+  batch:
+  # Add host metadata to all metrics
+  resourcedetection:
+    detectors: [env, system]
+    timeout: 5s
+
+exporters:
+  datadog:
+    api:
+      key: ${DD_API_KEY}
+      site: ${DD_SITE}
+
+  prometheus:
+    endpoint: "0.0.0.0:9464"
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - sqlserver
+        - sqlquery/query_stats
+        - sqlquery/sessions
+        - sqlquery/wait_stats
+        - sqlquery/buffer_pool
+        - sqlquery/index_stats
+      processors: [batch, resourcedetection]
+      exporters: [prometheus, datadog]

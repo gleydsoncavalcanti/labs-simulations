@@ -1,0 +1,80 @@
+# ════════════════════════════════════════════════════════
+# .gitignore - Database Simulation Lab
+# ════════════════════════════════════════════════════════
+
+# Credentials
+.env
+*.env
+!.env.example
+
+# API Keys & Secrets
+DD_API_KEY*
+DD_APP_KEY*
+*_key.txt
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+env/
+.venv/
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# Database files
+*.bak
+*.mdf
+*.ldf
+*.dump
+
+# Backup (local)
+.backup/
+*.sql.gz
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Node modules (se houver frontend)
+node_modules/
+npm-debug.log*
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json

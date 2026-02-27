@@ -1,0 +1,310 @@
+{
+  "annotations": { "list": [] },
+  "description": "SQL Server - Database Monitoring (DBM-style) via OpenTelemetry",
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }, "id": 100, "title": "⚡ Overview", "type": "row" },
+
+    { "id": 1, "type": "stat", "title": "Uptime (s)", "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "targets": [{ "expr": "sqlserver_computer_uptime", "legendFormat": "uptime", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 2, "type": "stat", "title": "CPUs", "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "targets": [{ "expr": "sqlserver_cpu_count", "legendFormat": "CPUs", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 3, "type": "stat", "title": "Databases Online", "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "targets": [{ "expr": "sum(sqlserver_database_count{database_status=\"online\"})", "legendFormat": "online", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 4, "type": "stat", "title": "Blocked Processes", "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none",
+        "thresholds": { "mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}, {"color": "red", "value": 5}] } },
+      "targets": [{ "expr": "sqlserver_processes_blocked", "legendFormat": "blocked", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 5, "type": "stat", "title": "Deadlock Rate /s", "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none",
+        "thresholds": { "mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 0.1}] } },
+      "targets": [{ "expr": "sqlserver_deadlock_rate_per_s", "legendFormat": "deadlocks/s", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 6, "type": "stat", "title": "Memory Usage (KB)", "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "fieldConfig": { "defaults": { "unit": "kbytes" } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "targets": [{ "expr": "sqlserver_memory_usage_KB_", "legendFormat": "memory", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 7, "type": "stat", "title": "Page Life Expectancy (s)", "gridPos": { "h": 4, "w": 4, "x": 0, "y": 5 },
+      "fieldConfig": { "defaults": { "unit": "s",
+        "thresholds": { "mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 300}, {"color": "green", "value": 600}] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "targets": [{ "expr": "min(sqlserver_page_life_expectancy_seconds)", "legendFormat": "PLE", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 8, "type": "stat", "title": "Active Sessions", "gridPos": { "h": 4, "w": 4, "x": 4, "y": 5 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "targets": [{ "expr": "sum(sqlserver_sessions_count)", "legendFormat": "sessions", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 9, "type": "stat", "title": "Open Transactions", "gridPos": { "h": 4, "w": 4, "x": 8, "y": 5 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none",
+        "thresholds": { "mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 10}, {"color": "red", "value": 50}] } },
+      "targets": [{ "expr": "sqlserver_sessions_open_transactions", "legendFormat": "open tx", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 10, "type": "stat", "title": "Memory Grants Pending", "gridPos": { "h": 4, "w": 4, "x": 12, "y": 5 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none",
+        "thresholds": { "mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}] } },
+      "targets": [{ "expr": "sqlserver_memory_grants_pending_count", "legendFormat": "grants", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 11, "type": "stat", "title": "Batch Requests /s", "gridPos": { "h": 4, "w": 4, "x": 16, "y": 5 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "targets": [{ "expr": "sqlserver_batch_request_rate_per_second", "legendFormat": "batches/s", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 12, "type": "stat", "title": "User Connections", "gridPos": { "h": 4, "w": 4, "x": 20, "y": 5 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "targets": [{ "expr": "sqlserver_user_connection_count", "legendFormat": "connections", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }, "id": 101, "title": "🔗 Sessions & Connections", "type": "row" },
+
+    { "id": 20, "type": "timeseries", "title": "Active Sessions by Status", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "fieldConfig": { "defaults": { "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+      "targets": [{ "expr": "sqlserver_sessions_count", "legendFormat": "{{status}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 21, "type": "timeseries", "title": "Open Transactions & Blocked Requests", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "fieldConfig": { "defaults": { "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+      "targets": [
+        { "expr": "sqlserver_sessions_open_transactions", "legendFormat": "open transactions", "datasource": { "type": "prometheus", "uid": "prometheus" } },
+        { "expr": "sqlserver_sessions_blocked_requests", "legendFormat": "blocked requests", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 22, "type": "timeseries", "title": "Login / Logout Rate (/s)", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 18 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "fieldConfig": { "defaults": { "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+      "targets": [
+        { "expr": "sqlserver_login_rate_per_s", "legendFormat": "logins/s", "datasource": { "type": "prometheus", "uid": "prometheus" } },
+        { "expr": "sqlserver_logout_rate_per_s", "legendFormat": "logouts/s", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 23, "type": "timeseries", "title": "Lock Timeout Rate & Lock Wait Rate", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 18 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sqlserver_lock_timeout_rate_per_s", "legendFormat": "lock timeouts/s", "datasource": { "type": "prometheus", "uid": "prometheus" } },
+        { "expr": "sqlserver_lock_wait_rate_per_second", "legendFormat": "lock wait rate/s", "datasource": { "type": "prometheus", "uid": "prometheus" } },
+        { "expr": "rate(sqlserver_lock_wait_count_total[1m])", "legendFormat": "lock waits delta/s", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 26 }, "id": 102, "title": "🧠 Memory & Buffer Pool", "type": "row" },
+
+    { "id": 30, "type": "timeseries", "title": "Memory Usage (KB)", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 27 },
+      "fieldConfig": { "defaults": { "unit": "kbytes", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "sqlserver_memory_usage_KB_", "legendFormat": "memory", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 31, "type": "timeseries", "title": "Page Life Expectancy (s)", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 27 },
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2, "fillOpacity": 10 },
+        "thresholds": { "mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 300}, {"color": "green", "value": 600}] } } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "min(sqlserver_page_life_expectancy_seconds)", "legendFormat": "PLE", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 32, "type": "timeseries", "title": "Buffer Pool Usage per Database (KB)", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 35 },
+      "fieldConfig": { "defaults": { "unit": "kbytes", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "sqlserver_buffer_pool_usage_kb", "legendFormat": "{{db_name}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 33, "type": "timeseries", "title": "Memory Grants Pending & Buffer Cache Hit %", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 35 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sqlserver_memory_grants_pending_count", "legendFormat": "grants pending", "datasource": { "type": "prometheus", "uid": "prometheus" } },
+        { "expr": "sqlserver_page_buffer_cache_hit_ratio_percent", "legendFormat": "cache hit %", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 34, "type": "timeseries", "title": "Free List Stalls & Page Lookup Rate", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 43 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sqlserver_page_buffer_cache_free_list_stalls_rate_per_s", "legendFormat": "free list stalls/s", "datasource": { "type": "prometheus", "uid": "prometheus" } },
+        { "expr": "sqlserver_page_lookup_rate_per_s", "legendFormat": "page lookups/s", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 51 }, "id": 103, "title": "💾 I/O & Latency", "type": "row" },
+
+    { "id": 40, "type": "timeseries", "title": "Database I/O Rate (bytes/s) by File", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 52 },
+      "fieldConfig": { "defaults": { "unit": "Bps", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "rate(sqlserver_database_io_bytes_total[1m])", "legendFormat": "{{direction}} - {{logical_filename}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 41, "type": "timeseries", "title": "Database Latency Rate (s/s) by File", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 52 },
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "rate(sqlserver_database_latency_seconds_total[1m])", "legendFormat": "{{direction}} - {{logical_filename}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 42, "type": "timeseries", "title": "Database Operations Rate by File", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 60 },
+      "fieldConfig": { "defaults": { "unit": "ops", "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "rate(sqlserver_database_operations_total[1m])", "legendFormat": "{{direction}} - {{logical_filename}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 43, "type": "timeseries", "title": "Resource Pool Disk: Ops/s & Throttling", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 60 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sqlserver_resource_pool_disk_operations_per_second", "legendFormat": "ops/s {{direction}}", "datasource": { "type": "prometheus", "uid": "prometheus" } },
+        { "expr": "sqlserver_resource_pool_disk_throttled_read_rate_per_second", "legendFormat": "throttled reads/s", "datasource": { "type": "prometheus", "uid": "prometheus" } },
+        { "expr": "sqlserver_resource_pool_disk_throttled_write_rate_per_second", "legendFormat": "throttled writes/s", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 68 }, "id": 104, "title": "⏳ Wait Statistics", "type": "row" },
+
+    { "id": 50, "type": "timeseries", "title": "Top 10 Wait Types - Total Wait Time (ms)", "gridPos": { "h": 10, "w": 24, "x": 0, "y": 69 },
+      "fieldConfig": { "defaults": { "unit": "ms", "custom": { "lineWidth": 2, "fillOpacity": 5 } } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] } },
+      "targets": [{ "expr": "topk(10, sqlserver_wait_stats_wait_time_ms)", "legendFormat": "{{wait_type}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 51, "type": "timeseries", "title": "Top 10 Wait Types - Avg Wait (ms)", "gridPos": { "h": 10, "w": 12, "x": 0, "y": 79 },
+      "fieldConfig": { "defaults": { "unit": "ms", "custom": { "lineWidth": 2, "fillOpacity": 5 } } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "topk(10, sqlserver_wait_stats_avg_wait_ms)", "legendFormat": "{{wait_type}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 52, "type": "timeseries", "title": "Top 10 Wait Types - Waiting Tasks", "gridPos": { "h": 10, "w": 12, "x": 12, "y": 79 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "topk(10, sqlserver_wait_stats_waiting_tasks_count)", "legendFormat": "{{wait_type}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 53, "type": "timeseries", "title": "OS Wait Duration Rate by Category (s/s)", "gridPos": { "h": 8, "w": 24, "x": 0, "y": 89 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [{ "expr": "topk(10, rate(sqlserver_os_wait_duration_seconds_total[1m]))", "legendFormat": "{{wait_category}} / {{wait_type}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 97 }, "id": 105, "title": "🔍 Query Performance", "type": "row" },
+
+    { "id": 60, "type": "timeseries", "title": "Top 10 Queries - Avg Elapsed Time (µs)", "gridPos": { "h": 10, "w": 24, "x": 0, "y": 98 },
+      "fieldConfig": { "defaults": { "unit": "µs", "custom": { "lineWidth": 2 } } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] } },
+      "targets": [{ "expr": "topk(10, sqlserver_query_avg_elapsed_time_us)", "legendFormat": "[{{db_name}}] {{query_text}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 61, "type": "timeseries", "title": "Top 10 Queries - Avg CPU Time (µs)", "gridPos": { "h": 10, "w": 12, "x": 0, "y": 108 },
+      "fieldConfig": { "defaults": { "unit": "µs" } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "topk(10, sqlserver_query_avg_cpu_time_us)", "legendFormat": "[{{db_name}}] {{query_text}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 62, "type": "timeseries", "title": "Top 10 Queries - Avg Logical Reads", "gridPos": { "h": 10, "w": 12, "x": 12, "y": 108 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "topk(10, sqlserver_query_avg_logical_reads)", "legendFormat": "[{{db_name}}] {{query_text}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 63, "type": "timeseries", "title": "Top 10 Queries - Execution Count", "gridPos": { "h": 10, "w": 24, "x": 0, "y": 118 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "topk(10, sqlserver_query_execution_count)", "legendFormat": "[{{db_name}}] {{query_text}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 128 }, "id": 106, "title": "📊 Transactions & TempDB", "type": "row" },
+
+    { "id": 70, "type": "timeseries", "title": "Transaction Delay (ms)", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 129 },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "sqlserver_transaction_delay_milliseconds", "legendFormat": "tx delay", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 71, "type": "timeseries", "title": "Transaction Mirror Write Rate (/s)", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 129 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "sqlserver_transaction_mirror_write_rate_per_s", "legendFormat": "mirror writes/s", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 72, "type": "timeseries", "title": "TempDB Space (KB) by State", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 137 },
+      "fieldConfig": { "defaults": { "unit": "kbytes" } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "sqlserver_database_tempdb_space_KB_", "legendFormat": "{{tempdb_state}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 73, "type": "timeseries", "title": "TempDB Version Store Size (KB)", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 137 },
+      "fieldConfig": { "defaults": { "unit": "kbytes" } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "sqlserver_database_tempdb_version_store_size_KB_", "legendFormat": "version store", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 74, "type": "timeseries", "title": "Batch Compilations & Recompilations (/s)", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 145 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sqlserver_batch_sql_compilation_rate_per_second", "legendFormat": "compilations/s", "datasource": { "type": "prometheus", "uid": "prometheus" } },
+        { "expr": "sqlserver_batch_sql_recompilation_rate_per_second", "legendFormat": "recompilations/s", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 75, "type": "timeseries", "title": "Database Execution Errors", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 145 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "sqlserver_database_execution_errors", "legendFormat": "errors", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 153 }, "id": 107, "title": "📈 Index, Scans & Replica", "type": "row" },
+
+    { "id": 80, "type": "timeseries", "title": "Index Search Rate & Full Scan Rate (/s)", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 154 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sqlserver_index_search_rate_per_s", "legendFormat": "index searches/s", "datasource": { "type": "prometheus", "uid": "prometheus" } },
+        { "expr": "sqlserver_database_full_scan_rate_per_second", "legendFormat": "full scans/s", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 81, "type": "timeseries", "title": "Missing Index Impact (top 10)", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 154 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom" } },
+      "targets": [{ "expr": "topk(10, sqlserver_index_missing_avg_user_impact)", "legendFormat": "{{db_name}}.{{table_name}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 82, "type": "timeseries", "title": "Missing Index User Seeks (top 10)", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 162 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom" } },
+      "targets": [{ "expr": "topk(10, sqlserver_index_missing_user_seeks)", "legendFormat": "{{db_name}}.{{table_name}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 83, "type": "timeseries", "title": "Backup/Restore Rate & Replica Data Rate", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 162 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sqlserver_database_backup_or_restore_rate_per_s", "legendFormat": "backups/s", "datasource": { "type": "prometheus", "uid": "prometheus" } },
+        { "expr": "sqlserver_replica_data_rate_bytes_per_second", "legendFormat": "replica {{replica_direction}} (B/s)", "datasource": { "type": "prometheus", "uid": "prometheus" } }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } },
+
+    { "id": 84, "type": "timeseries", "title": "Table Count by State", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 170 },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "sqlserver_table_count", "legendFormat": "{{table_state}} / {{table_status}}", "datasource": { "type": "prometheus", "uid": "prometheus" } }],
+      "datasource": { "type": "prometheus", "uid": "prometheus" } }
+
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["sqlserver", "dbm", "otel"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "SQL Server - DBM Style (OTel)",
+  "uid": "sqlserver-dbm-otel",
+  "version": 2
+}

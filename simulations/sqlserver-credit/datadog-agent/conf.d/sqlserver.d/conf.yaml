@@ -1,0 +1,59 @@
+init_config:
+
+instances:
+  - host: sqlserver
+    port: 1433
+    username: datadog
+    password: "Datadog123!@#"
+    connector: odbc
+    driver: ODBC Driver 18 for SQL Server
+    connection_string: "TrustServerCertificate=yes;"
+
+    # ── Database Monitoring (DBM) ─────────────────────────────────
+    dbm: true
+
+    # Bancos monitorados explicitamente (sem autodiscovery)
+    databases:
+      - SimDB
+
+    # Query samples: captura execuções reais + explain plans
+    query_samples:
+      enabled: true
+      collection_interval: 10
+      explain_parameterized_queries: true
+
+    # Query metrics: avg elapsed time, cpu, logical reads, executions
+    query_metrics:
+      enabled: true
+      collection_interval: 10
+
+    # Activity: sessões ativas, bloqueios, waits em tempo real
+    query_activity:
+      enabled: true
+      collection_interval: 10
+
+    # Settings: coleta configurações do SQL Server
+    collect_settings:
+      enabled: true
+      collection_interval: 600
+
+    # Schemas: coleta estrutura de tabelas, índices e colunas
+    schemas_collection:
+      enabled: true
+      collection_interval: 600
+
+    # Deadlocks: captura eventos de deadlock do SQL Server
+    deadlocks_collection:
+      enabled: true
+      collection_interval: 30
+
+    # Index Fragmentation: coleta fragmentação de índices
+    collect_index_fragmentation:
+      enabled: true
+      collection_interval: 600
+
+    tags:
+      - "env:lab"
+      - "service:sqlserver"
+      - "team:dba"
+      - "db:SimDB"

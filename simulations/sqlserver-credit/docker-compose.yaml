@@ -1,0 +1,105 @@
+version: '3.9'
+
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong!Passw0rd"
+    ports:
+      - "1433:1433"
+    networks:
+      - observability
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      - ./otel-config.yaml:/etc/otel/config.yaml
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=${DD_SITE}
+    ports:
+      - "9464:9464"
+    depends_on:
+      - sqlserver
+    networks:
+      - observability
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - observability
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - observability
+
+  # ── Datadog Agent com DBM nativo ─────────────────────────────
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:7
+    container_name: datadog-agent
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=${DD_SITE}
+      - DD_DBM_PROPAGATION_MODE=full
+      - DD_LOGS_ENABLED=false
+      - DD_APM_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_HOSTNAME=lab-sqlserver-dbm
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_CONTAINER_EXCLUDE=name:datadog-agent
+    volumes:
+      - ./datadog-agent/conf.d:/etc/datadog-agent/conf.d
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    depends_on:
+      - sqlserver
+    networks:
+      - observability
+
+  # ── Aplicação Python com APM (trace end-to-end) ───────────────
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: app-with-apm
+    environment:
+      - DD_AGENT_HOST=datadog-agent
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_SERVICE=credit-product
+      - DD_ENV=lab
+      - DD_VERSION=1.0
+      - DD_LOGS_INJECTION=true
+      - DD_TRACE_SAMPLE_RATE=1.0
+      - DD_DBM_PROPAGATION_MODE=full
+    volumes:
+      - ./simulate:/simulate
+    depends_on:
+      - sqlserver
+      - datadog-agent
+    networks:
+      - observability
+    command: /simulate/run_credit_simulator.sh
+
+networks:
+  observability:

@@ -1,0 +1,1469 @@
+{
+  "title": "SQL Server - Database Performance Analyzer (DPA Style)",
+  "description": "Dashboard estilo DPA para análise de performance do SQL Server com DBM - Credit Product Scenario",
+  "widgets": [
+    {
+      "id": 0,
+      "definition": {
+        "type": "note",
+        "content": "# 📊 SQL Server Performance Analyzer\n## Credit Product Database - Real-time Monitoring\n\n**Environment:** Lab | **Database:** CreditDB | **Instance:** sqlserver-credit\n\nDashboard inspirado no SolarWinds DPA para análise completa de performance do SQL Server",
+        "background_color": "blue",
+        "font_size": "18",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": false,
+        "tick_pos": "50%",
+        "tick_edge": "left",
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": 12,
+        "height": 2
+      }
+    },
+    {
+      "id": 1,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.stats.connections{$host,$env}",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 0,
+        "title": "Active Connections",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.stats.batch_requests{$host,$env}.as_rate()",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 0,
+        "title": "Batch Requests/sec",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 3,
+        "y": 2,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.buffer.page_life_expectancy{$host,$env}",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar",
+            "conditional_formats": [
+              {
+                "comparator": ">",
+                "value": 300,
+                "palette": "white_on_green"
+              },
+              {
+                "comparator": "<",
+                "value": 300,
+                "palette": "white_on_red"
+              }
+            ]
+          }
+        ],
+        "autoscale": true,
+        "precision": 0,
+        "title": "Page Life Expectancy (sec)",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 6,
+        "y": 2,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 4,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1 / 1024 / 1024"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.database.data_file_size_kb{$database,$env}",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 2,
+        "title": "Database Size (GB)",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 9,
+        "y": 2,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 5,
+      "definition": {
+        "type": "note",
+        "content": "## 🔥 Top Wait Types (Similar ao DPA)",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 6,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.os.wait_time_ms{$host,$env} by {wait_type}.as_rate()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "warm",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "area"
+          }
+        ],
+        "title": "Wait Time by Wait Type (ms/sec) - DPA Style",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 7,
+      "definition": {
+        "type": "toplist",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1",
+                "limit": {
+                  "count": 10,
+                  "order": "desc"
+                }
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.os.wait_time_ms{$host,$env} by {wait_type}",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "title": "Top 10 Wait Types (Total Time)",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 6,
+        "y": 5,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 8,
+      "definition": {
+        "type": "note",
+        "content": "## 🔒 Locks & Blocking",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 8,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 9,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1",
+                "alias": "Lock Waits"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "sum:sqlserver.stats.lock_waits{$host,$env}.as_rate()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "red",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ],
+        "title": "Lock Waits per Second",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 9,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 10,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "sum:sqlserver.stats.deadlocks{$host,$env}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar",
+            "conditional_formats": [
+              {
+                "comparator": "=",
+                "value": 0,
+                "palette": "white_on_green"
+              },
+              {
+                "comparator": ">",
+                "value": 0,
+                "palette": "white_on_red"
+              }
+            ]
+          }
+        ],
+        "autoscale": true,
+        "precision": 0,
+        "title": "Deadlocks (Total)",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 6,
+        "y": 9,
+        "width": 3,
+        "height": 3
+      }
+    },
+    {
+      "id": 11,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.stats.lock_wait_time_ms{$host,$env}",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar",
+            "conditional_formats": [
+              {
+                "comparator": "<",
+                "value": 100,
+                "palette": "white_on_green"
+              },
+              {
+                "comparator": ">=",
+                "value": 500,
+                "palette": "white_on_red"
+              }
+            ]
+          }
+        ],
+        "autoscale": true,
+        "precision": 0,
+        "title": "Avg Lock Wait Time (ms)",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 9,
+        "y": 9,
+        "width": 3,
+        "height": 3
+      }
+    },
+    {
+      "id": 12,
+      "definition": {
+        "type": "note",
+        "content": "## 📈 SQL Statistics & Performance",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 12,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 13,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1",
+                "alias": "Compilations"
+              },
+              {
+                "formula": "query2",
+                "alias": "Recompilations"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.stats.sql_compilations{$host,$env}.as_rate()"
+              },
+              {
+                "data_source": "metrics",
+                "name": "query2",
+                "query": "avg:sqlserver.stats.sql_recompilations{$host,$env}.as_rate()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "cool",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ],
+        "title": "SQL Compilations vs Recompilations",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 13,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 14,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.stats.batch_requests{$host,$env}.as_rate()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "purple",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "area"
+          }
+        ],
+        "title": "Batch Requests Rate",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 13,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 15,
+      "definition": {
+        "type": "note",
+        "content": "## 💾 Buffer & Memory Performance",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 16,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 16,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "(query1 / (query1 + query2)) * 100",
+                "alias": "Buffer Cache Hit Ratio"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.buffer.cache_hit_ratio{$host,$env}"
+              },
+              {
+                "data_source": "metrics",
+                "name": "query2",
+                "query": "avg:sqlserver.buffer.page_reads{$host,$env}.as_rate()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "green",
+              "line_type": "solid",
+              "line_width": "thick"
+            },
+            "display_type": "line"
+          }
+        ],
+        "title": "Buffer Cache Hit Ratio (%)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"],
+        "markers": [
+          {
+            "value": "y = 90",
+            "display_type": "error dashed"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 17,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 17,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1",
+                "alias": "Page Life Expectancy"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.buffer.page_life_expectancy{$host,$env}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "cool",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ],
+        "title": "Page Life Expectancy (seconds)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"],
+        "markers": [
+          {
+            "value": "y = 300",
+            "display_type": "warning dashed",
+            "label": "Minimum threshold"
+          }
+        ]
+      },
+      "layout": {
+        "x": 6,
+        "y": 17,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 18,
+      "definition": {
+        "type": "note",
+        "content": "## 🎯 Application & System Performance",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 20,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 19,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1",
+                "alias": "User Connections"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.stats.connections{$host,$env}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ],
+        "title": "User Connections Over Time",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 21,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 20,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1",
+                "alias": "Batch Requests"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.stats.batch_requests{$host,$env}.as_rate()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "warm",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "area"
+          }
+        ],
+        "title": "Batch Requests Rate (requests/sec)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 21,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 21,
+      "definition": {
+        "type": "note",
+        "content": "## 🔍 Database Monitoring - Top Queries (DBM)",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 24,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 22,
+      "definition": {
+        "type": "toplist",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1",
+                "limit": {
+                  "count": 10,
+                  "order": "desc"
+                }
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.database.queries{$database,$env} by {query_hash}",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "title": "Top 10 Queries by Execution Count",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 0,
+        "y": 25,
+        "width": 6,
+        "height": 4
+      }
+    },
+    {
+      "id": 23,
+      "definition": {
+        "type": "toplist",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1",
+                "limit": {
+                  "count": 10,
+                  "order": "desc"
+                }
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.query.avg_elapsed_time_ms{$database,$env} by {query_hash}",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "title": "Top 10 Slowest Queries (Avg Duration)",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 6,
+        "y": 25,
+        "width": 6,
+        "height": 4
+      }
+    },
+    {
+      "id": 24,
+      "definition": {
+        "type": "note",
+        "content": "## 💽 I/O Statistics",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 29,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 25,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1",
+                "alias": "Read Latency"
+              },
+              {
+                "formula": "query2",
+                "alias": "Write Latency"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.io.read_latency_ms{$database,$env}"
+              },
+              {
+                "data_source": "metrics",
+                "name": "query2",
+                "query": "avg:sqlserver.io.write_latency_ms{$database,$env}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "orange",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ],
+        "title": "I/O Latency (Read vs Write)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 30,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 26,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1",
+                "alias": "Reads"
+              },
+              {
+                "formula": "query2",
+                "alias": "Writes"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "sum:sqlserver.io.num_reads{$database,$env}.as_rate()"
+              },
+              {
+                "data_source": "metrics",
+                "name": "query2",
+                "query": "sum:sqlserver.io.num_writes{$database,$env}.as_rate()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "purple",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "area"
+          }
+        ],
+        "title": "I/O Operations per Second",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 30,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 27,
+      "definition": {
+        "type": "note",
+        "content": "## 📊 Transaction & Database Statistics",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 33,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 28,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.database.transactions{$database,$env}.as_rate()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "green",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "bars"
+          }
+        ],
+        "title": "Transaction Rate",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 34,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 29,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1",
+                "alias": "Log Flushes"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.database.log_flushes{$database,$env}.as_rate()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "cool",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ],
+        "title": "Log Flush Rate",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 34,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 30,
+      "definition": {
+        "type": "note",
+        "content": "## 🚨 Health Status & Alerts",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 37,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 31,
+      "definition": {
+        "type": "check_status",
+        "title": "SQL Server Instance Health",
+        "title_size": "16",
+        "title_align": "center",
+        "check": "sqlserver.can_connect",
+        "grouping": "cluster",
+        "group_by": ["host"],
+        "tags": ["env:lab", "host:sqlserver-credit"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 38,
+        "width": 4,
+        "height": 2
+      }
+    },
+    {
+      "id": 32,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:system.cpu.user{host:sqlserver-credit}",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar",
+            "conditional_formats": [
+              {
+                "comparator": "<",
+                "value": 70,
+                "palette": "white_on_green"
+              },
+              {
+                "comparator": ">=",
+                "value": 90,
+                "palette": "white_on_red"
+              }
+            ]
+          }
+        ],
+        "autoscale": true,
+        "precision": 1,
+        "title": "CPU Usage (%)",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 4,
+        "y": 38,
+        "width": 4,
+        "height": 2
+      }
+    },
+    {
+      "id": 33,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "query1"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:system.mem.used{host:sqlserver-credit} / avg:system.mem.total{host:sqlserver-credit} * 100",
+                "aggregator": "avg"
+              }
+            ],
+            "response_format": "scalar",
+            "conditional_formats": [
+              {
+                "comparator": "<",
+                "value": 80,
+                "palette": "white_on_green"
+              },
+              {
+                "comparator": ">=",
+                "value": 90,
+                "palette": "white_on_red"
+              }
+            ]
+          }
+        ],
+        "autoscale": true,
+        "precision": 1,
+        "title": "Memory Usage (%)",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 8,
+        "y": 38,
+        "width": 4,
+        "height": 2
+      }
+    },
+    {
+      "id": 34,
+      "definition": {
+        "type": "note",
+        "content": "# 🤖 Anomaly Detection\nDetecção automática de comportamentos anormais usando Machine Learning",
+        "background_color": "vivid_purple",
+        "font_size": "16",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": true,
+        "tick_pos": "50%",
+        "tick_edge": "bottom",
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 40,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 35,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "anomalies(query1, 'agile', 2)"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "sum:sqlserver.os.wait_time_ms{$host,$env}.as_rate()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ],
+        "markers": [],
+        "yaxis": {
+          "include_zero": true,
+          "scale": "linear"
+        },
+        "title": "Wait Time Anomalies (ML)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value", "sum"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 41,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 36,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "anomalies(query1, 'basic', 2)"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.buffer.cache_hit_ratio{$host,$env}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "warm",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ],
+        "markers": [
+          {
+            "value": "y = 90",
+            "display_type": "error dashed",
+            "label": "Critical Threshold"
+          }
+        ],
+        "yaxis": {
+          "include_zero": false,
+          "scale": "linear",
+          "min": "0",
+          "max": "100"
+        },
+        "title": "Buffer Cache Hit Ratio Anomalies",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 41,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 37,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "anomalies(query1, 'agile', 3)"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "sum:sqlserver.stats.lock_waits{$host,$env}.as_rate()"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "orange",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ],
+        "markers": [],
+        "yaxis": {
+          "include_zero": true,
+          "scale": "linear"
+        },
+        "title": "Lock Waits Anomalies (ML)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value", "sum"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 44,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 38,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "formula": "anomalies(query1, 'basic', 2)"
+              }
+            ],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:sqlserver.stats.connections{$host,$env}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "purple",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ],
+        "markers": [],
+        "yaxis": {
+          "include_zero": true,
+          "scale": "linear"
+        },
+        "title": "Active Connections Anomalies",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 44,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 39,
+      "definition": {
+        "type": "note",
+        "content": "## 💡 Quick Links & Resources\n\n- [View in Database Monitoring](/databases?query=host:sqlserver-credit)\n- [View APM Service Map](/apm/map?env=lab&service=credit-product)\n- [SQL Server Logs](/logs?query=service:sqlserver)\n- [Infrastructure View](/infrastructure?filter=host:sqlserver-credit)\n\n**Dashboard mantido por:** Time DBA\n**Última atualização:** Real-time\n**Ambiente:** Lab - Credit Product Scenario",
+        "background_color": "white",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "top",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 47,
+        "width": 12,
+        "height": 3
+      }
+    }
+  ],
+  "template_variables": [
+    {
+      "name": "env",
+      "prefix": "env",
+      "available_values": [],
+      "default": "lab"
+    },
+    {
+      "name": "host",
+      "prefix": "host",
+      "available_values": [],
+      "default": "sqlserver-credit"
+    },
+    {
+      "name": "database",
+      "prefix": "database",
+      "available_values": [],
+      "default": "CreditDB"
+    }
+  ],
+  "layout_type": "ordered",
+  "notify_list": [],
+  "reflow_type": "fixed"
+}
