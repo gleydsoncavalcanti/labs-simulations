@@ -1,0 +1,23 @@
+init_config:
+
+instances:
+  - host: postgres-credit
+    port: 5432
+    username: datadog
+    password: DatadogAgent123
+    dbname: creditdb
+    dbm: true
+    collect_activity: true
+    collect_database_size_metrics: true
+    collect_default_database: true
+    reported_hostname: lab-postgresql-dbm
+    tags:
+      - env:lab
+      - service:credit-product-pg
+      - dbtype:postgresql
+    query_metrics:
+      enabled: true
+    query_samples:
+      enabled: true
+    query_activity:
+      enabled: true

@@ -1,0 +1,133 @@
+version: '3.9'
+
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-credit
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "YourStrong!Passw0rd"
+      POSTGRES_DB: creditdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./sql/00_setup.sql:/docker-entrypoint-initdb.d/00_setup.sql
+      - ./sql/01_create_users.sql:/docker-entrypoint-initdb.d/01_create_users.sql
+      - ./sql:/sql
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=pg_stat_statements,auto_explain"
+      - "-c"
+      - "pg_stat_statements.track=all"
+      - "-c"
+      - "pg_stat_statements.max=10000"
+      - "-c"
+      - "auto_explain.log_min_duration=200"
+      - "-c"
+      - "auto_explain.log_analyze=on"
+      - "-c"
+      - "auto_explain.log_buffers=on"
+      - "-c"
+      - "log_min_duration_statement=100"
+      - "-c"
+      - "track_activity_query_size=4096"
+      - "-c"
+      - "track_io_timing=on"
+    networks:
+      - observability
+
+  # ── Datadog Agent com DBM + APM ──────────────────────────────
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:7
+    container_name: datadog-agent-pg
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=${DD_SITE}
+      - DD_DBM_PROPAGATION_MODE=full
+      - DD_LOGS_ENABLED=false
+      - DD_APM_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_HOSTNAME=lab-postgresql-dbm
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_CONTAINER_EXCLUDE=name:datadog-agent-pg
+    volumes:
+      - ./datadog-agent/conf.d:/etc/datadog-agent/conf.d
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    depends_on:
+      - postgres
+    networks:
+      - observability
+
+  # ── Postgres Exporter (métricas → Prometheus) ────────────────
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:YourStrong!Passw0rd@postgres:5432/creditdb?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres
+    networks:
+      - observability
+
+  # ── Prometheus ───────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-pg
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9091:9090"
+    depends_on:
+      - postgres-exporter
+    networks:
+      - observability
+
+  # ── Grafana ──────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-pg
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - observability
+
+  # ── Aplicação Python com APM + DBM Propagation ───────────────
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: credit-app-pg
+    environment:
+      - DD_AGENT_HOST=datadog-agent-pg
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_SERVICE=credit-product-pg
+      - DD_ENV=lab
+      - DD_VERSION=1.0
+      - DD_LOGS_INJECTION=true
+      - DD_TRACE_SAMPLE_RATE=1.0
+      - DD_DBM_PROPAGATION_MODE=full
+      - PGHOST=postgres-credit
+      - PGPORT=5432
+      - PGDATABASE=creditdb
+      - PGUSER=app_user
+      - PGPASSWORD=AppUser123
+    depends_on:
+      - postgres
+      - datadog-agent
+    networks:
+      - observability
+
+networks:
+  observability:
